@@ -1,0 +1,1451 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="icon" type="image/png" href="images/logo/favicon-96x96.png" sizes="96x96" />
+  <link rel="icon" type="image/svg+xml" href="images/logo/favicon.svg" />
+  <link rel="shortcut icon" href="images/logo/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="images/logo/apple-touch-icon.png" />
+  <link rel="manifest" href="images/logo/paipan.webmanifest" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>紫微斗数排盘</title>
+  <style>
+    :root {
+      --gold-primary: #d4af37;
+      --gold-light: #f3e5ab;
+      --gold-dark: #8a6e26;
+      --purple-dark: #1a0b2e;
+      --glass-bg: rgba(255, 255, 255, 0.08);
+      --glass-border: rgba(255, 255, 255, 0.15);
+      --glass-highlight: rgba(212, 175, 55, 0.15);
+      --text-main: #ffffff;
+      --text-sub: #a8a8a8;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { width: 100%; overflow-x: hidden; }
+
+    body {
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 15px;
+      min-height: 100vh;
+      color: var(--text-main);
+      position: relative;
+      z-index: 1;
+      overflow-x: hidden;
+    }
+
+    .background-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      background-size: 200% 200%;
+      animation: nebula 20s ease infinite;
+      z-index: -2;
+    }
+
+    .stars-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      display: none;
+    }
+
+    @keyframes nebula {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .header {
+      text-align: center;
+      padding: 40px 0 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .sub-title {
+      font-size: 14px;
+      color: var(--gold-primary);
+      opacity: 0.8;
+      letter-spacing: 4px;
+      margin-bottom: 10px;
+    }
+
+    .tip {
+      font-size: 12px;
+      color: var(--text-main);
+      opacity: 0.8;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    } 
+
+    h1 {
+      text-align: center;
+      font-size: 1.5rem;
+      margin-top: 0;
+      color: var(--text-main);
+      text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+      letter-spacing: 2px;
+    }
+
+    .container {
+      background: var(--glass-bg);
+      backdrop-filter: blur(1px);
+      -webkit-backdrop-filter: blur(1px);
+      border: 1px solid var(--glass-border);
+      padding: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      margin-bottom: 20px;
+    }
+
+    .form-group { margin-bottom: 15px; }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      font-size: 1rem;
+      color: var(--gold-light);
+    }
+
+    input, select {
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      height: 44px;
+      line-height: 44px;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 0 15px;
+      font-size: 16px;
+      color: var(--text-main);
+      box-sizing: border-box;
+      transition: all 0.3s ease;
+      display: block;
+      -webkit-appearance: none;
+    }
+
+    input[type="date"],
+    input[type="time"] {
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--gold-primary);
+      background: rgba(0, 0, 0, 0.4);
+      outline: none;
+    }
+
+    .radio-group {
+      display: flex;
+      gap: 30px;
+      margin-top: 10px;
+    }
+
+    .radio-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-sub);
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .radio-label input[type="radio"] {
+      width: 20px;
+      height: 20px;
+      accent-color: var(--gold-primary);
+      cursor: pointer;
+      appearance: auto;
+      -webkit-appearance: auto;
+      background: transparent;
+      border: none;
+      padding: 0;
+      margin: 0;
+      display: inline-block;
+    }
+
+    .radio-label:hover { color: var(--gold-light); }
+
+    .radio-label input[type="radio"]:checked + span {
+      color: var(--gold-primary);
+      font-weight: bold;
+    }
+
+    button {
+      height: 44px;
+      width: auto;
+      min-width: 200px;
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(to right, #b38728 0%, #fcf6ba 50%, #b38728 100%);
+      background-size: 200% auto;
+      color: #3e2b08;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      border-radius: 22px;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      box-shadow: 0 0 20px rgba(252, 246, 186, 0.3), 0 10px 30px rgba(0, 0, 0, 0.3);
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      animation: shineFlow 5s linear infinite;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto;
+    }
+
+    button::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -150%;
+      width: 150%;
+      height: 100%;
+      background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.7) 50%, transparent 70%);
+      transform: skewX(-20deg);
+      animation: scanLight 4s ease-in-out infinite;
+      animation-delay: 1s;
+    }
+
+    button:hover { background-position: 100% 50%; }
+
+    button:active {
+      transform: scale(0.96);
+      box-shadow: 0 4px 15px rgba(191, 149, 63, 0.2);
+      filter: brightness(0.9);
+    }
+
+    @keyframes shineFlow {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 200% 50%; }
+    }
+
+    @keyframes scanLight {
+      0% { left: -150%; opacity: 0; }
+      30% { left: 150%; opacity: 1; }
+      100% { left: 150%; opacity: 0; }
+    }
+
+    .error {
+      color: #ff6b6b;
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    .result {
+      margin-top: 20px;
+      padding: 2px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(1px);
+      border: 1px solid var(--glass-border);
+      display: none;
+      color: var(--text-main);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    .result::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+      animation: shine 6s infinite;
+    }
+
+    @keyframes shine {
+      0% { left: -100%; }
+      20% { left: 100%; }
+      100% { left: 100%; }
+    }
+
+    .plate-container {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: repeat(4, 1fr);
+      gap: 0px;
+      margin: 20px 0;
+      min-height: 700px;
+      width: 100%;
+      max-width: 100%;
+      --row-scale: 1;
+      --center-scale: 1;
+      --star-font-size: 13px;
+      --star-col: 14px;
+      --star-col-dense: 12px;
+      --star-col-ultra: 10px;
+      --star-gap: 2px;
+      --star-gap-dense: 1px;
+      --star-gap-ultra: 1px;
+      --sihua-font-size: 10px;
+      --center-title-size: 22px;
+      --center-content-size: 14px;
+    }
+
+    .selectors {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      align-items: center;
+      padding: 10px 12px 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .selector {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 160px;
+    }
+
+    .selector label {
+      font-size: 12px;
+      color: var(--gold-light);
+      font-weight: 600;
+    }
+
+    .selector select {
+      height: 36px;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 0 10px;
+      line-height: 36px;
+      font-size: 14px;
+      color: var(--text-main);
+    }
+
+    .palace {
+      border: 1px solid var(--glass-border);
+      padding: 12px 8px;
+      text-align: center;
+      background: var(--glass-bg);
+      backdrop-filter: blur(8px);
+      position: relative;
+      transition: all 0.3s ease;
+      min-height: 150px;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      cursor: pointer;
+    }
+
+    .palace:hover {
+      background: rgba(255, 255, 255, 0.12);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+
+    .palace.is-highlight,
+    .palace.is-highlight:hover {
+      border-color: var(--gold-primary);
+      background: var(--glass-highlight);
+      box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.4),
+        0 10px 24px rgba(0, 0, 0, 0.35),
+        0 0 18px rgba(212, 175, 55, 0.35);
+      transform: translateY(-2px);
+    }
+
+    .palace.is-highlight .palace-name {
+      color: #fff;
+      text-shadow: 0 0 8px rgba(212, 175, 55, 0.5);
+    }
+
+    .palace-number {
+      position: absolute;
+      top: 5px;
+      right: 10px;
+      font-size: 12px;
+      color: var(--text-sub);
+    }
+
+    .palace-name {
+      font-size: 14px;
+      font-weight: bold;
+      margin-bottom: 8px;
+      color: var(--gold-light);
+      flex-shrink: 0;
+    }
+
+    .palace-stars {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      flex: 1;
+      align-items: stretch;
+      justify-content: flex-start;
+      min-height: 0;
+      overflow: hidden;
+      width: 100%;
+    }
+
+    .palace-top {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: calc(var(--star-col) * var(--row-scale));
+      gap: calc(var(--star-gap) * var(--row-scale));
+      align-items: start;
+      justify-content: start;
+      min-height: 0;
+      overflow: visible;
+      padding-inline: 1px;
+      box-sizing: border-box;
+    }
+
+    .palace-top.dense {
+      grid-auto-columns: calc(var(--star-col-dense) * var(--row-scale));
+      gap: calc(var(--star-gap-dense) * var(--row-scale));
+    }
+
+    .palace-top.ultra {
+      grid-auto-columns: calc(var(--star-col-ultra) * var(--row-scale));
+      gap: calc(var(--star-gap-ultra) * var(--row-scale));
+    }
+
+    .fourhua-row {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: calc(var(--star-col) * var(--row-scale));
+      gap: calc(var(--star-gap) * var(--row-scale));
+      align-items: start;
+      justify-content: start;
+      min-height: 0;
+      overflow: hidden;
+      padding-inline: calc(1px * var(--row-scale));
+      box-sizing: border-box;
+      flex: 1;
+    }
+
+    .fourhua-row.dense {
+      grid-auto-columns: calc(var(--star-col-dense) * var(--row-scale));
+      gap: calc(var(--star-gap-dense) * var(--row-scale));
+    }
+
+    .fourhua-row.ultra {
+      grid-auto-columns: calc(var(--star-col-ultra) * var(--row-scale));
+      gap: calc(var(--star-gap-ultra) * var(--row-scale));
+    }
+
+    .star-cell,
+    .fourhua-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      min-width: 0;
+      overflow: visible;
+    }
+
+    .star-vert {
+      writing-mode: vertical-rl;
+      text-orientation: upright;
+      font-size: calc(var(--star-font-size) * var(--row-scale));
+      letter-spacing: 0.12em;
+      color: var(--text-main);
+    }
+
+    .star-chip {
+      display: inline-block;
+      padding: 0 1px;
+      border-radius: 2px;
+      line-height: 1;
+      box-sizing: border-box;
+    }
+
+    .star-chip.zihua-忌 { background: rgba(220, 20, 60, 0.35); }
+    .star-chip.zihua-科 { background: rgba(30, 144, 255, 0.35); }
+    .star-chip.zihua-权 { background: rgba(138, 43, 226, 0.35); }
+    .star-chip.zihua-禄 { background: rgba(50, 205, 50, 0.35); }
+
+    .star-chip.chong-忌 { box-shadow: inset 0 0 0 1px rgba(220, 20, 60, 0.8); }
+    .star-chip.chong-科 { box-shadow: inset 0 0 0 1px rgba(30, 144, 255, 0.8); }
+    .star-chip.chong-权 { box-shadow: inset 0 0 0 1px rgba(138, 43, 226, 0.8); }
+    .star-chip.chong-禄 { box-shadow: inset 0 0 0 1px rgba(50, 205, 50, 0.8); }
+
+    .star-vert.main {
+      color: var(--gold-primary);
+    }
+
+    .star-vert.evil {
+      color: #ba1515;
+      /* text-shadow: 0 0 1px rgba(253, 252, 252, 0.2); */
+    }
+
+    .star-vert.other {
+      font-size: calc(var(--star-font-size) * var(--row-scale));
+      letter-spacing: 0.12em;
+    }
+
+    .star-brightness {
+      writing-mode: vertical-rl;
+      text-orientation: upright;
+      font-size: calc(var(--star-font-size) * var(--row-scale) * 0.75);
+      letter-spacing: 0.1em;
+      color: var(--text-sub);
+      line-height: 1;
+    }
+
+    .palace-top.dense .star-vert.other {
+      font-size: calc(var(--star-font-size) * var(--row-scale));
+      letter-spacing: 0.12em;
+    }
+
+    .palace-top.ultra .star-vert.other {
+      font-size: calc(var(--star-font-size) * var(--row-scale));
+      letter-spacing: 0.12em;
+    }
+
+    .palace-mid {
+      display: flex;
+      gap: 6px;
+      align-items: flex-start;
+      justify-content: space-between;
+      min-height: 0;
+    }
+
+    .flow-area {
+      display: flex;
+      flex-direction: row-reverse;
+      align-items: flex-start;
+      gap: 0;
+      min-width: 36px;
+      margin-left: auto;
+    }
+
+    .flow-col {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      align-items: center;
+    }
+
+    .flow-star {
+      writing-mode: vertical-rl;
+      text-orientation: upright;
+      font-size: 10px;
+      color: var(--text-sub);
+      letter-spacing: 0;
+      line-height: 1;
+      padding: 0;
+    }
+
+    .flow-star.daxian {
+      color: #32cd32;
+    }
+
+    .flow-star.liunian {
+      color: #1e90ff;
+    }
+
+    .star-name {
+      writing-mode: vertical-rl;
+      text-orientation: upright;
+      letter-spacing: 0.2em;
+      min-height: 30px;
+      font-size: 16px;
+    }
+
+    .palace-bottom {
+      display: grid;
+      grid-template-columns: 1fr auto auto auto;
+      gap: 6px;
+      align-items: start;
+      margin-top: auto;
+      padding-top: 6px;
+    }
+
+    .bottom-left {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      font-size: 10px;
+      color: var(--text-sub);
+    }
+
+    .bottom-line {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      line-height: 1.2;
+    }
+
+    .bottom-star {
+      color: var(--text-sub);
+    }
+
+    .bottom-year {
+      font-size: 11px;
+      color: var(--gold-primary);
+      align-self: center;
+      white-space: nowrap;
+    }
+
+    .bottom-roles {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      font-size: 11px;
+      color: var(--text-main);
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .role-line {
+      min-height: 1em;
+      line-height: 1;
+    }
+
+    .bottom-stem {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 2px;
+    }
+
+    .bottom-stem .changsheng {
+      writing-mode: vertical-rl;
+      text-orientation: upright;
+      font-size: 10px;
+      color: var(--text-sub);
+    }
+
+    .bottom-stem .stem {
+      writing-mode: vertical-rl;
+      text-orientation: upright;
+      font-size: 12px;
+      color: var(--gold-light);
+      letter-spacing: 0.1em;
+    }
+
+    .sihua-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      min-height: 28px;
+      justify-content: flex-start;
+    }
+
+    .sihua-mark {
+      display: block;
+      padding: calc(0.5px * var(--row-scale)) calc(1px * var(--row-scale));
+      border-radius: 2px;
+      font-size: calc(var(--sihua-font-size) * var(--row-scale));
+      font-weight: bold;
+      text-align: center;
+      writing-mode: horizontal-tb;
+      text-orientation: mixed;
+      line-height: 1.2;
+      border-width: calc(0.5px * var(--row-scale));
+    }
+
+    .sihua-禄,
+    .sihua-权,
+    .sihua-科,
+    .sihua-忌 {
+      background: rgba(212, 175, 55, 0.35);
+      color: var(--gold-primary);
+      border: 1px solid rgba(212, 175, 55, 0.6);
+    }
+
+    .sihua-daxian {
+      background: rgba(50, 205, 50, 0.35);
+      color: #32cd32;
+      border: 1px solid rgba(50, 205, 50, 0.6);
+    }
+
+    .sihua-liunian {
+      background: rgba(30, 144, 255, 0.35);
+      color: #1e90ff;
+      border: 1px solid rgba(30, 144, 255, 0.6);
+    }
+
+    .no-stars { color: var(--text-sub); font-style: italic; }
+
+    .star-name.lucun,
+    .star-name.tiankui,
+    .star-name.tianyue {
+      color: #ffd700;
+      font-weight: bold;
+    }
+
+    .star-name.qingyang,
+    .star-name.tuoluo {
+      color: #666666;
+      font-weight: bold;
+    }
+
+    .center-info {
+      grid-column: 2 / 4;
+      grid-row: 2 / 4;
+      border: 1px solid var(--glass-border);
+      padding: 18px;
+      text-align: center;
+      background: var(--glass-bg);
+      backdrop-filter: blur(8px);
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .center-title {
+      font-size: calc(var(--center-title-size) * var(--center-scale));
+      font-weight: bold;
+      margin-bottom: 8px;
+      color: var(--gold-primary);
+    }
+
+    .center-content {
+      font-size: calc(var(--center-content-size) * var(--center-scale));
+      line-height: 1.6;
+      color: var(--text-main);
+    }
+
+    .palace-11 { grid-column: 3; grid-row: 4; }
+    .palace-12 { grid-column: 2; grid-row: 4; }
+    .palace-1 { grid-column: 1; grid-row: 4; }
+    .palace-2 { grid-column: 1; grid-row: 3; }
+    .palace-3 { grid-column: 1; grid-row: 2; }
+    .palace-4 { grid-column: 1; grid-row: 1; }
+    .palace-5 { grid-column: 2; grid-row: 1; }
+    .palace-6 { grid-column: 3; grid-row: 1; }
+    .palace-7 { grid-column: 4; grid-row: 1; }
+    .palace-8 { grid-column: 4; grid-row: 2; }
+    .palace-9 { grid-column: 4; grid-row: 3; }
+    .palace-10 { grid-column: 4; grid-row: 4; }
+
+    @media (max-width: 768px) {
+      body { max-width: 100%; padding: 10px; }
+      .plate-container {
+        min-height: 520px;
+        --star-font-size: 11px;
+        --star-col: 12px;
+        --star-col-dense: 10px;
+        --star-col-ultra: 9px;
+        --star-gap: 2px;
+        --star-gap-dense: 1px;
+        --star-gap-ultra: 1px;
+        --sihua-font-size: 8px;
+        --center-title-size: 16px;
+        --center-content-size: 12px;
+      }
+      .palace { padding: 10px 5px; min-height: 120px; }
+      .palace-name { font-size: 12px; margin-bottom: 5px; }
+      .palace-stars { gap: 1px; }
+      .flow-star { font-size: 9px; }
+      .radio-group { flex-wrap: wrap; gap: 15px; }
+      .bottom-left { font-size: 9px; }
+      .bottom-year { font-size: 10px; }
+      .bottom-roles { font-size: 10px; }
+      .bottom-stem .stem { font-size: 11px; }
+      .bottom-stem .changsheng { font-size: 9px; }
+      .palace-bottom {
+        grid-template-columns: 1fr auto auto;
+        grid-template-rows: auto auto;
+        row-gap: 4px;
+        align-items: end;
+      }
+      .bottom-left { grid-column: 1; grid-row: 1; }
+      .bottom-roles { grid-column: 2; grid-row: 1; }
+      .bottom-stem { grid-column: 3; grid-row: 1; }
+      .bottom-year {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        justify-self: center;
+      }
+      .selectors { flex-direction: column; gap: 8px; }
+      .selector { width: 100%; min-width: 0; }
+      .center-info { padding: 12px; min-height: 120px; }
+      .center-title { margin-bottom: 6px; }
+    }
+
+    @media (max-width: 480px) {
+      .plate-container {
+        min-height: 420px;
+        --star-font-size: 10px;
+        --star-col: 10px;
+        --star-col-dense: 9px;
+        --star-col-ultra: 8px;
+        --star-gap: 1px;
+        --star-gap-dense: 1px;
+        --star-gap-ultra: 1px;
+      }
+      .palace { padding: 6px 4px; min-height: 95px; }
+      .flow-star { font-size: 8px; }
+      .bottom-left { font-size: 8px; }
+      .bottom-year { font-size: 9px; }
+      .bottom-roles { font-size: 9px; }
+      .bottom-stem .stem { font-size: 10px; }
+      .bottom-stem .changsheng { font-size: 8px; }
+      .palace-bottom { row-gap: 3px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="background-container"></div>
+  <canvas id="starCanvas" class="stars-canvas"></canvas>
+  <div class="header">
+    <div class="sub-title">— 知味观：紫微斗数排盘 —</div>
+  </div>
+  <h1>紫微知味</h1>
+
+  <div class="container">
+    <div class="form-group">
+      <label for="nameInput">姓名</label>
+      <input id="nameInput" type="text" placeholder="匿名">
+    </div>
+    <div class="form-group">
+      <label>性别</label>
+      <div class="radio-group">
+        <label class="radio-label"><input type="radio" name="sex" value="男" checked><span>男</span></label>
+        <label class="radio-label"><input type="radio" name="sex" value="女"><span>女</span></label>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="dateInput">日期</label>
+      <input id="dateInput" type="date" min="1900-01-01" max="2100-12-31" required>
+    </div>
+    <div class="form-group">
+      <label for="timeInput">时间</label>
+      <input id="timeInput" type="time" value="12:00" required>
+    </div>
+    <button id="generateBtn">排盘</button>
+    <div id="error" class="error"></div>
+  </div>
+
+  <div id="result" class="result">
+    <div id="plate" class="plate-container"></div>
+    <div class="selectors">
+      <div class="selector">
+        <label for="longtimeSelect">大限</label>
+        <select id="longtimeSelect"></select>
+      </div>
+      <div class="selector">
+        <label for="yearSelect">流年</label>
+        <select id="yearSelect"></select>
+      </div>
+    </div>
+    
+  </div>
+  <p class="tip">注：星曜底色为有自化，边框色为该星对宫射出化曜所冲。颜色与四化之关系为：禄绿、权紫、科蓝、忌红。</p>
+
+  <script src="js/ziwei.1.6.js"></script>
+  <script>
+  
+
+    // -------- 页面逻辑 --------
+    let currentChart = null;
+    let selectedLongBranch = '';
+    let selectedYear = '';
+    let selectedPalaceIndex = null;
+    let longTimeOptions = [];
+
+    function getSexValue() {
+      const checked = document.querySelector('input[name="sex"]:checked');
+      return checked ? checked.value : '男';
+    }
+
+    function normalizeName(name) {
+      const trimmed = String(name || '').trim();
+      return trimmed ? trimmed : '匿名';
+    }
+
+    function formatSolarInput(dateValue, timeValue) {
+      const date = dateValue || '';
+      const time = timeValue || '12:00';
+      return `${date} ${time}`;
+    }
+
+    function buildStarClass(name) {
+      if (name === '禄存') return 'lucun';
+      if (name === '擎羊') return 'qingyang';
+      if (name === '陀罗') return 'tuoluo';
+      if (name === '天魁') return 'tiankui';
+      if (name === '天钺') return 'tianyue';
+      return '';
+    }
+
+    function normalizeStarList(list) {
+      return Array.isArray(list) ? list : [];
+    }
+
+    const MAIN_STARS = new Set(['紫微','贪狼','巨门','廉贞','武曲','破军','天府','天相','天梁','天同','七杀','天机','太阳','太阴']);
+    const LUCKY_STARS = new Set(['左辅','右弼','文昌','文曲','天魁','天钺']);
+    const EVIL_STARS = new Set(['擎羊','陀罗','火星','铃星','地空','地劫']);
+    const BOSHI_STARS = ['博士','力士','青龙','小耗','将军','奏书','飞廉','喜神','病符','大耗','伏兵','官符'];
+    const JIANGQIAN_STARS = ['将星','攀鞍','岁驿','息神','华盖','劫煞','灾煞','天煞','指背','咸池','月煞','亡神'];
+    const SUIQIAN_STARS = ['岁建','晦气','丧门','贯索','官符','小耗','岁破','龙德','白虎','天德','吊客','病符'];
+    const FOURHUA_EXTRA = new Set(['文昌','文曲']);
+
+    function starNameSet(stars) {
+      const set = new Set();
+      stars.forEach(star => set.add(star.name));
+      return set;
+    }
+
+    function filterStarsBySet(stars, set) {
+      return stars.filter(star => set.has(star.name));
+    }
+
+    function excludeStarsByName(stars, excludeSet) {
+      return stars.filter(star => !excludeSet.has(star.name));
+    }
+
+    function buildStarOrder(palace) {
+      const allStars = normalizeStarList(palace.starlist);
+      const mainStars = filterStarsBySet(allStars, MAIN_STARS);
+      const luckyStars = filterStarsBySet(allStars, LUCKY_STARS);
+      const evilStars = filterStarsBySet(allStars, EVIL_STARS);
+      const assistStars = normalizeStarList(palace.Astarlist).filter(star => !MAIN_STARS.has(star.name) && !LUCKY_STARS.has(star.name) && !EVIL_STARS.has(star.name));
+
+      const bottomExclude = new Set([...BOSHI_STARS, ...JIANGQIAN_STARS, ...SUIQIAN_STARS]);
+      if (palace.changsheng && palace.changsheng.name) {
+        bottomExclude.add(palace.changsheng.name);
+      }
+
+      const assistNames = starNameSet(assistStars);
+      const excludeSet = new Set([...MAIN_STARS, ...LUCKY_STARS, ...EVIL_STARS]);
+      assistNames.forEach(name => excludeSet.add(name));
+      bottomExclude.forEach(name => excludeSet.add(name));
+      const otherStars = excludeStarsByName(allStars, excludeSet);
+
+      const assistSet = new Set(assistStars.map(star => star.name));
+      return {
+        ordered: [...mainStars, ...assistStars, ...luckyStars, ...evilStars, ...otherStars],
+        assistSet
+      };
+    }
+
+    function buildTopStarsHtml(orderInfo, dense) {
+      if (!orderInfo || orderInfo.ordered.length === 0) {
+        return '<span class="no-stars">无星曜</span>';
+      }
+
+      return orderInfo.ordered.map(star => {
+        const classes = ['star-vert'];
+        let nameHtml = star.name;
+        const brightness = star.brightness && star.brightness !== '无' ? star.brightness : '';
+        const chipClasses = [];
+        if (star.zihua && star.zihua !== '无') {
+          const zihuaType = star.zihua.replace('自化', '');
+          if (zihuaType) {
+            chipClasses.push(`zihua-${zihuaType}`);
+          }
+        }
+        if (star.chong && star.chong !== '无') {
+          const chongType = star.chong.replace('冲', '');
+          if (chongType) {
+            chipClasses.push(`chong-${chongType}`);
+          }
+        }
+        if (chipClasses.length > 0) {
+          nameHtml = `<span class="star-chip ${chipClasses.join(' ')}">${star.name}</span>`;
+        }
+        if (MAIN_STARS.has(star.name)) {
+          classes.push('main');
+        }
+        if (EVIL_STARS.has(star.name)) {
+          classes.push('evil');
+        }
+        if (!MAIN_STARS.has(star.name) && !LUCKY_STARS.has(star.name) && !EVIL_STARS.has(star.name) && !orderInfo.assistSet.has(star.name)) {
+          classes.push('other');
+        }
+        return `
+          <div class="star-cell">
+            <div class="${classes.join(' ')}">${nameHtml}</div>
+            ${brightness ? `<div class="star-brightness">${brightness}</div>` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function buildFourhuaRowHtml(orderInfo) {
+      if (!orderInfo || orderInfo.ordered.length === 0) {
+        return '';
+      }
+
+      return orderInfo.ordered.map(star => {
+        const marks = [];
+        if (MAIN_STARS.has(star.name) || FOURHUA_EXTRA.has(star.name)) {
+          if (star.sihua && star.sihua !== '无') {
+            marks.push(`<span class="sihua-mark sihua-${star.sihua}">${star.sihua}</span>`);
+          }
+          if (star.ltff && star.ltff !== '无') {
+            marks.push(`<span class="sihua-mark sihua-daxian">${star.ltff}</span>`);
+          }
+          if (star.yff && star.yff !== '无') {
+            marks.push(`<span class="sihua-mark sihua-liunian">${star.yff}</span>`);
+          }
+        }
+        return `
+          <div class="fourhua-cell">
+            <div class="sihua-container">${marks.join('')}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function formatFlowStarName(name) {
+      if (!name) return '';
+      if (name.startsWith('运')) {
+        return `大${name.slice(1)}`;
+      }
+      if (name.startsWith('年')) {
+        return `流${name.slice(1)}`;
+      }
+      return name;
+    }
+
+    function buildFlowAreaHtml(palace) {
+      const daxian = normalizeStarList(palace.ltstarlist).map(star => ({
+        name: formatFlowStarName(star.name),
+        type: 'daxian'
+      }));
+      const liunian = normalizeStarList(palace.ystarlist).map(star => ({
+        name: formatFlowStarName(star.name),
+        type: 'liunian'
+      }));
+      const merged = [...daxian, ...liunian];
+      if (merged.length === 0) return '';
+
+      return merged.map(item => `<div class="flow-star ${item.type}">${item.name}</div>`).join('');
+    }
+
+    function pickFirstStarByNames(palace, names) {
+      const allStars = normalizeStarList(palace.starlist);
+      for (let i = 0; i < names.length; i++) {
+        const match = allStars.find(star => star.name === names[i]);
+        if (match) return match;
+      }
+      return null;
+    }
+
+    function buildBottomLineHtml(star) {
+      if (!star) return '';
+      return `<span class="bottom-star">${star.name}</span>`;
+    }
+
+    function normalizeBaseRole(name) {
+      const cleaned = String(name || '').replace('|身', '').replace('宫', '');
+      return cleaned;
+    }
+
+    function shortRole(name) {
+      const map = {
+        '命': '命',
+        '父母': '父',
+        '福德': '福',
+        '田宅': '田',
+        '事业': '事',
+        '官禄': '官',
+        '交友': '友',
+        '迁移': '迁',
+        '疾厄': '疾',
+        '财帛': '财',
+        '子女': '子',
+        '夫妻': '夫',
+        '兄弟': '兄'
+      };
+      return map[name] || name.slice(0, 1);
+    }
+
+    function buildRoles(palace) {
+      //const base = normalizeBaseRole(palace.name);
+      const base = palace.name;
+      const yearRole = palace.yname ? palace.yname : '';
+      const longRole = palace.ltname ? palace.ltname.replace(/^运/, '大') : '';
+      const baseRole = base;
+      return { yearRole, longRole, baseRole };
+    }
+
+    function clearLongNames(chart) {
+      chart.skyastrolabe.forEach(palace => {
+        palace.ltname = '';
+      });
+    }
+
+    function clearYearNames(chart) {
+      chart.skyastrolabe.forEach(palace => {
+        palace.yname = '';
+      });
+    }
+
+    function clearLongtimeFlags(chart) {
+      if (!chart || !chart.skystarlist) return;
+      chart.skystarlist.forEach(star => {
+        star.ltff = '无';
+      });
+    }
+
+    function clearYearFlags(chart) {
+      if (!chart || !chart.skystarlist) return;
+      chart.skystarlist.forEach(star => {
+        star.yff = '无';
+      });
+    }
+
+    function buildLongtimeOptions(chart) {
+      const seen = new Set();
+      const items = [];
+      chart.skyastrolabe.forEach(palace => {
+        if (palace.longtime && !seen.has(palace.longtime)) {
+          seen.add(palace.longtime);
+          items.push({
+            label: palace.longtime,
+            branch: palace.branch,
+            longtimestart: palace.longtimestart
+          });
+        }
+      });
+      items.sort((a, b) => a.longtimestart - b.longtimestart);
+      longTimeOptions = items;
+    }
+
+    function populateLongtimeSelect() {
+      const select = document.getElementById('longtimeSelect');
+      select.innerHTML = '';
+      const placeholder = document.createElement('option');
+      placeholder.value = '';
+      placeholder.textContent = '未选择大限';
+      select.appendChild(placeholder);
+
+      longTimeOptions.forEach(option => {
+        const opt = document.createElement('option');
+        opt.value = option.branch;
+        opt.textContent = option.label;
+        select.appendChild(opt);
+      });
+      select.value = selectedLongBranch || '';
+    }
+
+    function populateYearSelect(startYear) {
+      const select = document.getElementById('yearSelect');
+      select.innerHTML = '';
+      const placeholder = document.createElement('option');
+      placeholder.value = '';
+      placeholder.textContent = startYear ? '未选择流年' : '请先选择大限';
+      select.appendChild(placeholder);
+
+      if (!startYear) {
+        select.disabled = true;
+        select.value = '';
+        return;
+      }
+
+      select.disabled = false;
+      for (let i = 0; i < 10; i++) {
+        const year = startYear + i;
+        const opt = document.createElement('option');
+        opt.value = String(year);
+        opt.textContent = `${year}`;
+        select.appendChild(opt);
+      }
+      select.value = selectedYear || '';
+    }
+
+    function initSelectors(chart) {
+      buildLongtimeOptions(chart);
+      populateLongtimeSelect();
+      populateYearSelect(null);
+    }
+
+    function handleLongtimeChange() {
+      if (!currentChart) return;
+      const select = document.getElementById('longtimeSelect');
+      const yearSelect = document.getElementById('yearSelect');
+      selectedYear = '';
+      yearSelect.value = '';
+      currentChart.clearYeartime();
+      clearYearNames(currentChart);
+      clearYearFlags(currentChart);
+
+      const branch = select.value;
+      if (!branch) {
+        selectedLongBranch = '';
+        currentChart.clearLongtime();
+        clearLongNames(currentChart);
+        clearLongtimeFlags(currentChart);
+        populateYearSelect(null);
+        renderChart(currentChart);
+        return;
+      }
+
+      selectedLongBranch = branch;
+      currentChart.clearLongtime();
+      clearLongNames(currentChart);
+      clearLongtimeFlags(currentChart);
+
+      const palace = currentChart.skyastrolabe.find(p => p.branch === branch);
+      if (!palace) {
+        populateYearSelect(null);
+        renderChart(currentChart);
+        return;
+      }
+
+      const firstYear = currentChart.birthday.year + palace.longtimestart - 1;
+      const stem = palace.stem;
+      currentChart.setLongtime(stem, palace.branch);
+      populateYearSelect(firstYear);
+      renderChart(currentChart);
+    }
+
+    function handleYearChange() {
+      if (!currentChart || !selectedLongBranch) return;
+      const select = document.getElementById('yearSelect');
+      const value = select.value;
+
+      currentChart.clearYeartime();
+      clearYearNames(currentChart);
+      clearYearFlags(currentChart);
+
+      if (!value) {
+        selectedYear = '';
+        renderChart(currentChart);
+        return;
+      }
+
+      const year = parseInt(value, 10);
+      if (Number.isNaN(year)) {
+        renderChart(currentChart);
+        return;
+      }
+
+      const gz = calendar.solar2lunar4(year, 6, 1, 12);
+      currentChart.setYeartime(gz.gzYear[0], gz.gzYear[1]);
+      selectedYear = value;
+      renderChart(currentChart);
+    }
+
+    function buildCenterInfo(chart) {
+      const lunar = chart.lbirthday;
+      const four = chart.fourcolumn;
+      const lunarText = `${lunar.cYear}年 ${lunar.cMonth}${lunar.cDay} ${lunar.hour}时`;
+      const solarText = `${chart.birthday.year}年${chart.birthday.month}月${chart.birthday.day}日 ${chart.birthday.hour}时`;
+
+      return `
+        <div class="center-title">${chart.name}</div>
+        <div class="center-content">性别：${chart.sex}（${chart.sexyy}）</div>
+        <div class="center-content">阳历：${solarText}</div>
+        <div class="center-content">农历：${lunarText}</div>
+        <div class="center-content">八字：${four.year} ${four.month} ${four.day} ${four.hour}</div>
+        <div class="center-content">五行局：${chart.fivelement}</div>
+        <div class="center-content">命主：${chart.mMaster}　身主：${chart.sMaster}</div>
+      `;
+    }
+
+    function adjustStarScale() {
+      const plate = document.getElementById('plate');
+      if (!plate) return;
+      plate.style.setProperty('--center-scale', '1');
+      const palaces = plate.querySelectorAll('.palace');
+      let minScale = 1;
+      palaces.forEach(palace => {
+        palace.style.setProperty('--row-scale', '1');
+        const row = palace.querySelector('.palace-top');
+        if (!row || row.querySelectorAll('.star-cell').length === 0) return;
+        const available = row.clientWidth;
+        const needed = row.scrollWidth;
+        if (!available || !needed) return;
+        if (needed > available) {
+          const scale = available / needed;
+          palace.style.setProperty('--row-scale', scale.toFixed(3));
+          minScale = Math.min(minScale, scale);
+        }
+      });
+      plate.style.setProperty('--center-scale', minScale.toFixed(3));
+    }
+
+    function normalizePalaceIndex(value) {
+      const index = parseInt(value, 10);
+      if (Number.isNaN(index)) return null;
+      return ((index - 1) % 12 + 12) % 12 + 1;
+    }
+
+    function getRelatedPalaceIndexes(index) {
+      const base = normalizePalaceIndex(index);
+      if (!base) return [];
+      const offset = 4;
+      const clockwise = normalizePalaceIndex(base + offset);
+      const counter = normalizePalaceIndex(base - offset);
+      return [base, clockwise, counter];
+    }
+
+    function clearPalaceHighlights(plate) {
+      if (!plate) return;
+      plate.querySelectorAll('.palace.is-highlight').forEach(node => {
+        node.classList.remove('is-highlight');
+      });
+    }
+
+    function applyPalaceHighlights(indexes) {
+      const plate = document.getElementById('plate');
+      if (!plate) return;
+      clearPalaceHighlights(plate);
+      indexes.forEach(index => {
+        const target = plate.querySelector(`.palace[data-index="${index}"]`);
+        if (target) target.classList.add('is-highlight');
+      });
+    }
+
+    function handlePalaceClick(event) {
+      const plate = document.getElementById('plate');
+      if (!plate) return;
+      const target = event.target.closest('.palace');
+      if (!target || !plate.contains(target)) return;
+      const index = normalizePalaceIndex(target.dataset.index);
+      if (!index) return;
+      selectedPalaceIndex = index;
+      const indexes = getRelatedPalaceIndexes(index);
+      applyPalaceHighlights(indexes);
+    }
+
+    function renderChart(chart) {
+      const plate = document.getElementById('plate');
+      const result = document.getElementById('result');
+
+      const branchesDisplay = ['寅','卯','辰','巳','午','未','申','酉','戌','亥','子','丑'];
+      const palacesByBranch = {};
+      for (let i = 0; i < chart.skyastrolabe.length; i++) {
+        const palace = chart.skyastrolabe[i];
+        palacesByBranch[palace.branch] = palace;
+      }
+
+      let html = '';
+      for (let i = 0; i < branchesDisplay.length; i++) {
+        const branch = branchesDisplay[i];
+        const palace = palacesByBranch[branch];
+        if (!palace) continue;
+
+        const orderInfo = buildStarOrder(palace);
+        const starCount = orderInfo.ordered.length;
+        const isDense = starCount > 12;
+        const isUltra = starCount > 14;
+        const topStarsHtml = buildTopStarsHtml(orderInfo, isDense);
+        const fourhuaRowHtml = buildFourhuaRowHtml(orderInfo);
+        const flowHtml = buildFlowAreaHtml(palace);
+        const boshiLine = buildBottomLineHtml(pickFirstStarByNames(palace, BOSHI_STARS));
+        const jiangqianLine = buildBottomLineHtml(pickFirstStarByNames(palace, JIANGQIAN_STARS));
+        const suiqianLine = buildBottomLineHtml(pickFirstStarByNames(palace, SUIQIAN_STARS));
+        const roles = buildRoles(palace);
+        const palaceIndex = i + 1;
+        const bottomYearRaw = selectedLongBranch
+          ? (selectedYear ? (palace.mtime || '') : (palace.ytime || ''))
+          : (palace.longtime || '');
+        const bottomYear = bottomYearRaw || '&nbsp;';
+
+        html += `
+          <div class="palace palace-${palaceIndex}" data-index="${palaceIndex}" data-branch="${palace.branch}">
+            <div class="palace-stars">
+              <div class="palace-top${isDense ? ' dense' : ''}${isUltra ? ' ultra' : ''}">
+                ${topStarsHtml}
+              </div>
+              <div class="palace-mid">
+                <div class="fourhua-row${isDense ? ' dense' : ''}${isUltra ? ' ultra' : ''}">
+                  ${fourhuaRowHtml}
+                </div>
+                <div class="flow-area">
+                  ${flowHtml}
+                </div>
+              </div>
+              <div class="palace-bottom">
+                <div class="bottom-left">
+                  <div class="bottom-line">${boshiLine}</div>
+                  <div class="bottom-line">${jiangqianLine}</div>
+                  <div class="bottom-line">${suiqianLine}</div>
+                </div>
+                <div class="bottom-year">${bottomYear}</div>
+                <div class="bottom-roles">
+                  <div class="role-line">${roles.yearRole || ''}</div>
+                  <div class="role-line">${roles.longRole || ''}</div>
+                  <div class="role-line">${roles.baseRole}</div>
+                </div>
+                <div class="bottom-stem">
+                  <div class="changsheng">${palace.changsheng && palace.changsheng.name ? palace.changsheng.name : ''}</div>
+                  <div class="stem">${palace.stem}${palace.branch}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      html += `
+        <div class="center-info">
+          ${buildCenterInfo(chart)}
+        </div>
+      `;
+
+      plate.innerHTML = html;
+      result.style.display = 'block';
+      requestAnimationFrame(adjustStarScale);
+      if (selectedPalaceIndex) {
+        applyPalaceHighlights(getRelatedPalaceIndexes(selectedPalaceIndex));
+      }
+    }
+
+    function generateChart() {
+      const error = document.getElementById('error');
+      error.textContent = '';
+
+      const nameInput = document.getElementById('nameInput').value;
+      const dateInput = document.getElementById('dateInput').value;
+      const timeInput = document.getElementById('timeInput').value;
+      const sex = getSexValue();
+      const name = normalizeName(nameInput);
+
+      if (!dateInput) {
+        error.textContent = '请输入阳历日期。';
+        return;
+      }
+
+      const solarInput = formatSolarInput(dateInput, timeInput);
+
+      try {
+        const chart = Object.create(destiny);
+        chart.createSky(name, sex, solarInput);
+        currentChart = chart;
+        selectedLongBranch = '';
+        selectedYear = '';
+        selectedPalaceIndex = null;
+        initSelectors(chart);
+        renderChart(chart);
+      } catch (e) {
+        error.textContent = e.message || '排盘失败，请检查输入。';
+      }
+    }
+
+    document.getElementById('generateBtn').addEventListener('click', generateChart);
+    document.getElementById('longtimeSelect').addEventListener('change', handleLongtimeChange);
+    document.getElementById('yearSelect').addEventListener('change', handleYearChange);
+    document.getElementById('plate').addEventListener('click', handlePalaceClick);
+    window.addEventListener('resize', () => {
+      if (!currentChart) return;
+      requestAnimationFrame(adjustStarScale);
+    });
+    initStars();
+  </script>
+</body>
+</html>
