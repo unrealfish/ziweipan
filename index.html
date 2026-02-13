@@ -879,6 +879,23 @@
       return `${date} ${time}`;
     }
 
+    function initializeLocalDateTime() {
+      const now = new Date();
+      const dateInput = document.getElementById('dateInput');
+      const timeInput = document.getElementById('timeInput');
+      if (dateInput) {
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        dateInput.value = `${year}-${month}-${day}`;
+      }
+      if (timeInput) {
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        timeInput.value = `${hours}:${minutes}`;
+      }
+    }
+
     function buildStarClass(name) {
       if (name === '禄存') return 'lucun';
       if (name === '擎羊') return 'qingyang';
@@ -1445,6 +1462,7 @@
       if (!currentChart) return;
       requestAnimationFrame(adjustStarScale);
     });
+    initializeLocalDateTime();
     initStars();
   </script>
 </body>
