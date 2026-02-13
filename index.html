@@ -1457,54 +1457,69 @@
     }
 
     function normalizeStarForExport(star) {
-      return {
-        name: star.name || '',
-        branch: star.branch || '',
-        level: star.level || '',
-        brightness: star.brightness || '',
-        sihua: star.sihua || '',
-        zihua: star.zihua || '',
-        chong: star.chong || '',
-        ltff: star.ltff || '',
-        yff: star.yff || ''
-      };
+      const normalizedStar = {};
+
+      if (star.brightness) normalizedStar['亮度'] = star.brightness;
+      if (star.sihua) normalizedStar['原局四化'] = star.sihua;
+      if (star.ltff) normalizedStar['大运四化'] = star.ltff;
+      if (star.yff) normalizedStar['流年四化'] = star.yff;
+      if (star.zihua) normalizedStar['自化'] = star.zihua;
+      if (star.chong) normalizedStar['对宫化冲'] = star.chong;
+
+      return normalizedStar;
+    }
+
+    function buildPalaceStarsForExport(palace) {
+      const palaceStars = {};
+      const allStars = [
+        ...normalizeStarList(palace.starlist),
+        ...normalizeStarList(palace.ltstarlist),
+        ...normalizeStarList(palace.ystarlist)
+      ];
+
+      allStars.forEach((star) => {
+        const starName = star.name || '';
+        if (!starName) return;
+
+        if (!palaceStars[starName]) {
+          palaceStars[starName] = {};
+        }
+
+        Object.assign(palaceStars[starName], normalizeStarForExport(star));
+      });
+
+      return palaceStars;
     }
 
     function buildChartExportData(chart) {
-      return {
-        meta: {
-          name: chart.name,
-          sex: chart.sex,
-          sexyy: chart.sexyy,
-          solarBirthday: chart.birthday,
-          lunarBirthday: chart.lbirthday,
-          fourcolumn: chart.fourcolumn,
-          fivelement: chart.fivelement,
-          mMaster: chart.mMaster,
-          sMaster: chart.sMaster,
-          selectedLongBranch,
-          selectedYear,
-          exportedAt: new Date().toISOString()
-        },
-        palaces: chart.skyastrolabe.map((palace, index) => ({
-          index: index + 1,
-          name: palace.name || '',
-          branch: palace.branch || '',
-          stem: palace.stem || '',
-          longtime: palace.longtime || '',
-          longtimestart: palace.longtimestart || '',
-          ytime: palace.ytime || '',
-          mtime: palace.mtime || '',
-          ltname: palace.ltname || '',
-          yname: palace.yname || '',
-          changsheng: palace.changsheng && palace.changsheng.name ? palace.changsheng.name : '',
-          stars: {
-            starlist: normalizeStarList(palace.starlist).map(normalizeStarForExport),
-            ltstarlist: normalizeStarList(palace.ltstarlist).map(normalizeStarForExport),
-            ystarlist: normalizeStarList(palace.ystarlist).map(normalizeStarForExport)
-          }
-        }))
+      const exportData = {
+        '中宫': {
+          '姓名': chart.name || '',
+          '性别': chart.sex || '',
+          '阳历': chart.birthday || '',
+          '阴历': chart.lbirthday || '',
+          '四柱': chart.fourcolumn || '',
+          '五行局': chart.fivelement || '',
+          '命主': chart.mMaster || '',
+          '身主': chart.sMaster || ''
+        }
       };
+
+      chart.skyastrolabe.forEach((palace) => {
+        const palaceKey = `${palace.branch || ''}宫`;
+        if (!palace.branch) return;
+
+        exportData[palaceKey] = {
+          '宫职': {
+            '原局': palace.name || '',
+            '大运': palace.ltname || '',
+            '流年': palace.yname || ''
+          },
+          '星曜': buildPalaceStarsForExport(palace)
+        };
+      });
+
+      return exportData;
     }
 
     function exportChart() {
