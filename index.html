@@ -1459,14 +1459,31 @@
     function normalizeStarForExport(star) {
       const normalizedStar = {};
 
-      if (star.brightness) normalizedStar['亮度'] = star.brightness;
-      if (star.sihua) normalizedStar['原局四化'] = star.sihua;
-      if (star.ltff) normalizedStar['大运四化'] = star.ltff;
-      if (star.yff) normalizedStar['流年四化'] = star.yff;
-      if (star.zihua) normalizedStar['自化'] = star.zihua;
-      if (star.chong) normalizedStar['对宫化冲'] = star.chong;
+      if (hasDisplayValue(star.brightness)) normalizedStar['亮度'] = star.brightness;
+      if (hasDisplayValue(star.sihua)) normalizedStar['原局四化'] = star.sihua;
+      if (hasDisplayValue(star.ltff)) normalizedStar['大运四化'] = star.ltff;
+      if (hasDisplayValue(star.yff)) normalizedStar['流年四化'] = star.yff;
+      if (hasDisplayValue(star.zihua)) normalizedStar['自化'] = star.zihua;
+      if (hasDisplayValue(star.chong)) normalizedStar['对宫化冲'] = star.chong;
 
       return normalizedStar;
+    }
+
+    function hasDisplayValue(value) {
+      if (value === null || value === undefined) return false;
+      const normalized = String(value).trim();
+      return normalized !== '' && normalized !== '无';
+    }
+
+    function assignIfDisplayValue(target, key, value) {
+      if (hasDisplayValue(value)) {
+        target[key] = value;
+      }
+    }
+
+    function getPalaceYearValue(palace) {
+      if (!selectedLongBranch) return '';
+      return selectedYear ? (palace.mtime || '') : (palace.ytime || '');
     }
 
     function buildPalaceStarsForExport(palace) {
@@ -1492,34 +1509,47 @@
     }
 
     function buildChartExportData(chart) {
+      const centerPalace = {};
+      assignIfDisplayValue(centerPalace, '姓名', chart.name || '');
+      assignIfDisplayValue(centerPalace, '性别', chart.sex || '');
+      assignIfDisplayValue(centerPalace, '阳历', chart.birthday || '');
+      assignIfDisplayValue(centerPalace, '阴历', chart.lbirthday || '');
+      assignIfDisplayValue(centerPalace, '四柱', chart.fourcolumn || '');
+      assignIfDisplayValue(centerPalace, '五行局', chart.fivelement || '');
+      assignIfDisplayValue(centerPalace, '命主', chart.mMaster || '');
+      assignIfDisplayValue(centerPalace, '身主', chart.sMaster || '');
+
       const exportData = {
-        '中宫': {
-          '姓名': chart.name || '',
-          '性别': chart.sex || '',
-          '阳历': chart.birthday || '',
-          '阴历': chart.lbirthday || '',
-          '四柱': chart.fourcolumn || '',
-          '五行局': chart.fivelement || '',
-          '命主': chart.mMaster || '',
-          '身主': chart.sMaster || ''
-        }
+        '中宫': centerPalace
       };
 
       chart.skyastrolabe.forEach((palace) => {
         const palaceKey = `${palace.branch || ''}宫`;
         if (!palace.branch) return;
 
-        exportData[palaceKey] = {
-          '宫职': {
-            '原局': palace.name || '',
-            '大运': palace.ltname || '',
-            '流年': palace.yname || ''
-          },
-          '星曜': buildPalaceStarsForExport(palace)
-        };
+        const palaceData = {};
+        assignIfDisplayValue(palaceData, '宫干', palace.stem || '');
+        assignIfDisplayValue(palaceData, '大运', palace.longtime || '');
+        assignIfDisplayValue(palaceData, '流年', getPalaceYearValue(palace));
+
+        const palaceRoleData = {};
+        assignIfDisplayValue(palaceRoleData, '原局', palace.name || '');
+        assignIfDisplayValue(palaceRoleData, '大运', palace.ltname || '');
+        assignIfDisplayValue(palaceRoleData, '流年', palace.yname || '');
+        if (Object.keys(palaceRoleData).length > 0) {
+          palaceData['宫职'] = palaceRoleData;
+        }
+
+        palaceData['星曜'] = buildPalaceStarsForExport(palace);
+
+        exportData[palaceKey] = palaceData;
       });
 
       return exportData;
+    }
+
+    function showCopySuccessPopup() {
+      window.alert('命盘已复制到剪切板');
     }
 
     function exportChart() {
@@ -1550,11 +1580,11 @@
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(jsonText)
           .then(() => {
-            error.textContent = '命盘 JSON 已复制到剪贴板。';
+            showCopySuccessPopup();
           })
           .catch(() => {
             if (copyByExecCommand()) {
-              error.textContent = '命盘 JSON 已复制到剪贴板。';
+              showCopySuccessPopup();
             } else {
               error.textContent = '复制失败，请检查浏览器剪贴板权限。';
             }
@@ -1563,7 +1593,7 @@
       }
 
       if (copyByExecCommand()) {
-        error.textContent = '命盘 JSON 已复制到剪贴板。';
+        showCopySuccessPopup();
       } else {
         error.textContent = '复制失败，请检查浏览器剪贴板权限。';
       }
