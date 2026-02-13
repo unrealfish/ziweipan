@@ -848,7 +848,9 @@
         <select id="yearSelect"></select>
       </div>
     </div>
-    
+    <div class="selectors">
+      <button id="exportBtn" type="button">导出</button>
+    </div>
   </div>
   <p class="tip">注：星曜底色为有自化，边框色为该星对宫射出化曜所冲。颜色与四化之关系为：禄绿、权紫、科蓝、忌红。</p>
 
@@ -1454,7 +1456,106 @@
       }
     }
 
+    function normalizeStarForExport(star) {
+      return {
+        name: star.name || '',
+        branch: star.branch || '',
+        level: star.level || '',
+        brightness: star.brightness || '',
+        sihua: star.sihua || '',
+        zihua: star.zihua || '',
+        chong: star.chong || '',
+        ltff: star.ltff || '',
+        yff: star.yff || ''
+      };
+    }
+
+    function buildChartExportData(chart) {
+      return {
+        meta: {
+          name: chart.name,
+          sex: chart.sex,
+          sexyy: chart.sexyy,
+          solarBirthday: chart.birthday,
+          lunarBirthday: chart.lbirthday,
+          fourcolumn: chart.fourcolumn,
+          fivelement: chart.fivelement,
+          mMaster: chart.mMaster,
+          sMaster: chart.sMaster,
+          selectedLongBranch,
+          selectedYear,
+          exportedAt: new Date().toISOString()
+        },
+        palaces: chart.skyastrolabe.map((palace, index) => ({
+          index: index + 1,
+          name: palace.name || '',
+          branch: palace.branch || '',
+          stem: palace.stem || '',
+          longtime: palace.longtime || '',
+          longtimestart: palace.longtimestart || '',
+          ytime: palace.ytime || '',
+          mtime: palace.mtime || '',
+          ltname: palace.ltname || '',
+          yname: palace.yname || '',
+          changsheng: palace.changsheng && palace.changsheng.name ? palace.changsheng.name : '',
+          stars: {
+            starlist: normalizeStarList(palace.starlist).map(normalizeStarForExport),
+            ltstarlist: normalizeStarList(palace.ltstarlist).map(normalizeStarForExport),
+            ystarlist: normalizeStarList(palace.ystarlist).map(normalizeStarForExport)
+          }
+        }))
+      };
+    }
+
+    function exportChart() {
+      const error = document.getElementById('error');
+      if (!currentChart) {
+        error.textContent = '请先排盘，再进行导出。';
+        return;
+      }
+
+      error.textContent = '';
+      const exportData = buildChartExportData(currentChart);
+      const jsonText = JSON.stringify(exportData, null, 2);
+      const copyByExecCommand = () => {
+        const textarea = document.createElement('textarea');
+        textarea.value = jsonText;
+        textarea.setAttribute('readonly', 'readonly');
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        textarea.style.pointerEvents = 'none';
+        document.body.appendChild(textarea);
+        textarea.select();
+        textarea.setSelectionRange(0, textarea.value.length);
+        const success = document.execCommand('copy');
+        document.body.removeChild(textarea);
+        return success;
+      };
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(jsonText)
+          .then(() => {
+            error.textContent = '命盘 JSON 已复制到剪贴板。';
+          })
+          .catch(() => {
+            if (copyByExecCommand()) {
+              error.textContent = '命盘 JSON 已复制到剪贴板。';
+            } else {
+              error.textContent = '复制失败，请检查浏览器剪贴板权限。';
+            }
+          });
+        return;
+      }
+
+      if (copyByExecCommand()) {
+        error.textContent = '命盘 JSON 已复制到剪贴板。';
+      } else {
+        error.textContent = '复制失败，请检查浏览器剪贴板权限。';
+      }
+    }
+
     document.getElementById('generateBtn').addEventListener('click', generateChart);
+    document.getElementById('exportBtn').addEventListener('click', exportChart);
     document.getElementById('longtimeSelect').addEventListener('change', handleLongtimeChange);
     document.getElementById('yearSelect').addEventListener('change', handleYearChange);
     document.getElementById('plate').addEventListener('click', handlePalaceClick);
