@@ -1548,6 +1548,10 @@
       return exportData;
     }
 
+    function showCopySuccessPopup() {
+      window.alert('命盘已复制到剪切板');
+    }
+
     function exportChart() {
       const error = document.getElementById('error');
       if (!currentChart) {
@@ -1576,11 +1580,11 @@
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(jsonText)
           .then(() => {
-            error.textContent = '命盘 JSON 已复制到剪贴板。';
+            showCopySuccessPopup();
           })
           .catch(() => {
             if (copyByExecCommand()) {
-              error.textContent = '命盘 JSON 已复制到剪贴板。';
+              showCopySuccessPopup();
             } else {
               error.textContent = '复制失败，请检查浏览器剪贴板权限。';
             }
@@ -1589,7 +1593,7 @@
       }
 
       if (copyByExecCommand()) {
-        error.textContent = '命盘 JSON 已复制到剪贴板。';
+        showCopySuccessPopup();
       } else {
         error.textContent = '复制失败，请检查浏览器剪贴板权限。';
       }
